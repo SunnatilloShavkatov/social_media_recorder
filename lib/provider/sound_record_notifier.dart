@@ -25,7 +25,7 @@ class SoundRecordNotifier extends ChangeNotifier {
   String initialStorePathRecord = "";
 
   /// recording mp3 sound Object
-  Record recordMp3 = Record();
+  AudioRecorder recordMp3 = AudioRecorder();
 
   /// recording mp3 sound to check if all permisiion passed
   bool _isAcceptedPermission = false;
@@ -105,9 +105,9 @@ class SoundRecordNotifier extends ChangeNotifier {
     if (buttonPressed) {
       if (second > 1 || minute > 0) {
         String path = mPath;
-        String _time = minute.toString() + ":" + second.toString();
-        sendRequestFunction(File.fromUri(Uri(path: path)), _time);
-        stopRecording!(_time);
+        String time = "$minute:$second";
+        sendRequestFunction(File.fromUri(Uri(path: path)), time);
+        stopRecording!(time);
       }
     }
     resetEdgePadding();
@@ -144,11 +144,11 @@ class SoundRecordNotifier extends ChangeNotifier {
 
   /// used to get the current store path
   Future<String> getFilePath() async {
-    String _sdPath = "";
+    String sdPath = "";
     Directory tempDir = await getTemporaryDirectory();
-    _sdPath =
+    sdPath =
         initialStorePathRecord.isEmpty ? tempDir.path : initialStorePathRecord;
-    var d = Directory(_sdPath);
+    var d = Directory(sdPath);
     if (!d.existsSync()) {
       d.createSync(recursive: true);
     }
@@ -157,7 +157,7 @@ class SoundRecordNotifier extends ChangeNotifier {
         "${now.year.toString()}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}-${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
     // print("the current data is $convertedDateTime");
     String storagePath =
-        _sdPath + "/" + convertedDateTime + _getSoundExtention();
+        "$sdPath/$convertedDateTime${_getSoundExtention()}";
     mPath = storagePath;
     return storagePath;
   }
@@ -196,8 +196,8 @@ class SoundRecordNotifier extends ChangeNotifier {
         RenderBox box = key.currentContext?.findRenderObject() as RenderBox;
         Offset position = box.localToGlobal(Offset.zero);
         if (position.dx <= MediaQuery.of(context).size.width * 0.6) {
-          String _time = minute.toString() + ":" + second.toString();
-          if (stopRecording != null) stopRecording!(_time);
+          String time = "$minute:$second";
+          if (stopRecording != null) stopRecording!(time);
           resetEdgePadding();
         } else if (x.dx >= MediaQuery.of(context).size.width) {
           edge = 0;
@@ -259,7 +259,10 @@ class SoundRecordNotifier extends ChangeNotifier {
       buttonPressed = true;
       String recordFilePath = await getFilePath();
       _timer = Timer(const Duration(milliseconds: 900), () {
-        recordMp3.start(path: recordFilePath);
+        recordMp3.start(
+          const RecordConfig(),
+          path: recordFilePath,
+        );
       });
 
       if (startRecord != null) {
